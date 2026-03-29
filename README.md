@@ -29,7 +29,12 @@ A entrada está localizada na posição (0,0) e a saída na posição (4,4). O l
 ## Como Executar
 
 1. Instale as dependências:
-   pip install numpy matplotlib
+
+```bash
+pip install numpy matplotlib
+```
 
 2. Execute o arquivo principal:
-   python main.py
+```bash
+python main.py
+```
