@@ -9,7 +9,7 @@ import algoritmo_x as x
 TAMANHO = 5 # 5 x 5 células (25 no total)
 PORCENTAGEM_BLOQUEIOS = 0.32
 ENTRADA = (0, 0)
-SAIDA = (4, 4)
+SAIDA = (TAMANHO-1, TAMANHO-1)
 
 # Cria um labirinto
 def gerar_labirinto():
