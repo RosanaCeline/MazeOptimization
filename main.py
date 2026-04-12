@@ -86,8 +86,8 @@ labirinto = gerar_labirinto()
 print(labirinto)
 mostrar_labirinto(labirinto)
 
-# caminho_a_star = star.funcao(labirinto, ENTRADA, SAIDA)
-# mostrar_labirinto(labirinto, caminho_a_star, "Labirinto com o Algoritmo A*")
+caminho_a_star = star.algoritmo_a_star(labirinto, ENTRADA, SAIDA)
+mostrar_labirinto(labirinto, caminho_a_star, "Labirinto com o Algoritmo A*")
 
 # caminho_x = x.funcao(labirinto, ENTRADA, SAIDA)
 # mostrar_labirinto(labirinto, caminho_x, "Labirinto com o Algoritmo X")
