@@ -28,8 +28,17 @@ def algoritmo_a_star(labirinto, entrada, saida):
     veio_de = {}
     custo_ate_agora = {entrada: 0}
 
+    visitados = set() # rastrear visitados
+    abertos = {entrada} # rastrear a fila de abertos
+
     while fila:
         _, atual = heappop(fila)
+
+        if atual in visitados:
+            continue
+            
+        visitados.add(atual)
+        abertos.discard(atual)
 
         if atual == saida:
             break
@@ -42,6 +51,14 @@ def algoritmo_a_star(labirinto, entrada, saida):
                 prioridade = novo_custo + heuristica(vizinho, saida)
                 heappush(fila, (prioridade, vizinho))
                 veio_de[vizinho] = atual
+                abertos.add(vizinho)
+        
+        yield {
+            "atual": atual,
+            "visitados": set(visitados),
+            "abertos": set(abertos),
+            "caminho": None
+        }
 
     # reconstrução do caminho
     caminho = []
@@ -50,8 +67,17 @@ def algoritmo_a_star(labirinto, entrada, saida):
     while atual != entrada:
         caminho.append(atual)
         atual = veio_de.get(atual)
+        if atual is None:  # saida inalcançável
+            break
 
     caminho.append(entrada)
     caminho.reverse()
+
+    yield {
+        "atual": saida,
+        "visitados": set(visitados),
+        "abertos": set(),
+        "caminho": caminho
+    }
 
     return caminho

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 import random
 from collections import deque
 
@@ -61,33 +62,80 @@ def existe_caminho(labirinto):
     return False
     
 # Mostra o labirinto com matplotlib
-def mostrar_labirinto(labirinto, caminho=None, title="Labirinto 5x5"):
+def mostrar_labirinto(labirinto, caminho=None, title="Labirinto 5x5", gerador_factory=None, intervalo=0.3):
     fig, ax = plt.subplots()
-    ax.imshow(labirinto, cmap='gray_r')
+    ax.imshow(labirinto, cmap='gray_r') if gerador_factory else None
 
-    # Desenhar grade
-    ax.set_xticks(np.arange(-0.5, TAMANHO, 1), minor=True)
-    ax.set_yticks(np.arange(-0.5, TAMANHO, 1), minor=True)
-    ax.grid(which="minor", linestyle='-', linewidth=2)
+    # modo animado (se usar algoritmo)
+    if gerador_factory:
+        legenda = [
+            Patch(facecolor='skyblue', alpha=0.6, label='Visitado'),
+            Patch(facecolor='yellow',  alpha=0.7, label='Na fila (aberto)'),
+            Patch(facecolor='orange',  alpha=0.9, label='Expandindo agora'),
+            Patch(facecolor='red',     alpha=0.9, label='Caminho final'),
+            Patch(facecolor='black',   alpha=0.9, label='Parede'),
+        ]
 
-    # Entrada e saída
-    ax.text(ENTRADA[1], ENTRADA[0], 'E', ha='center', va='center')
-    ax.text(SAIDA[1], SAIDA[0], 'S', ha='center', va='center')
+        while True:
+            for estado in gerador_factory():
+                ax.clear()
 
-    # Caminho
-    if caminho:
-        for (x, y) in caminho:
-            ax.plot(y, x, marker='o')
+                # Desenhar grade
+                ax.imshow(labirinto, cmap='gray_r')
+                ax.set_xticks(np.arange(-0.5, TAMANHO, 1), minor=True)
+                ax.set_yticks(np.arange(-0.5, TAMANHO, 1), minor=True)
+                ax.grid(which="minor", linestyle='-', linewidth=2)
 
-    ax.set_title(title)
-    plt.show()
+                # animar caminho
+                for (x, y) in estado["visitados"]:
+                    ax.add_patch(plt.Rectangle((y-0.5, x-0.5), 1, 1, color='skyblue', alpha=0.6, zorder=2))
+                for (x, y) in estado["abertos"]:
+                    ax.add_patch(plt.Rectangle((y-0.5, x-0.5), 1, 1, color='yellow', alpha=0.7, zorder=2))
+
+                if estado["caminho"] is None:
+                    cx, cy = estado["atual"]
+                    ax.add_patch(plt.Rectangle((cy-0.5, cx-0.5), 1, 1, color='orange', alpha=0.9, zorder=3))
+                if estado["caminho"]:
+                    for (x, y) in estado["caminho"]:
+                        ax.plot(y, x, marker='o', color='red', zorder=4)
+
+                # Entrada e saída
+                ax.text(ENTRADA[1], ENTRADA[0], 'E', ha='center', va='center')
+                ax.text(SAIDA[1], SAIDA[0], 'S', ha='center', va='center')
+
+                ax.set_title("Caminho encontrado!" if estado["caminho"] else f"Explorando {estado['atual']}")
+                ax.legend(handles=legenda, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0)
+
+                plt.draw()
+                plt.pause(intervalo)
+
+            plt.pause(1)
+
+    # modo estático
+    if not gerador_factory:
+        # Desenhar grade
+        ax.imshow(labirinto, cmap='gray_r')
+        ax.set_xticks(np.arange(-0.5, TAMANHO, 1), minor=True)
+        ax.set_yticks(np.arange(-0.5, TAMANHO, 1), minor=True)
+        ax.grid(which="minor", linestyle='-', linewidth=2)
+
+        # Entrada e saída
+        ax.text(ENTRADA[1], ENTRADA[0], 'E', ha='center', va='center')
+        ax.text(SAIDA[1], SAIDA[0], 'S', ha='center', va='center')
+
+        # Caminho
+        if caminho:
+            for (x, y) in caminho:
+                ax.plot(y, x, marker='o')
+
+        ax.set_title(title)
+        plt.show()
 
 labirinto = gerar_labirinto()
 print(labirinto)
-mostrar_labirinto(labirinto)
 
-caminho_a_star = star.algoritmo_a_star(labirinto, ENTRADA, SAIDA)
-mostrar_labirinto(labirinto, caminho_a_star, "Labirinto com o Algoritmo A*")
+mostrar_labirinto(labirinto)
+mostrar_labirinto(labirinto, gerador_factory=lambda: star.algoritmo_a_star(labirinto, ENTRADA, SAIDA))
 
 # caminho_x = x.funcao(labirinto, ENTRADA, SAIDA)
 # mostrar_labirinto(labirinto, caminho_x, "Labirinto com o Algoritmo X")
