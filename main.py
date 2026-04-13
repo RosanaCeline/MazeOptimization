@@ -67,7 +67,7 @@ def on_close(event):
     running = False
 
 # Mostra o labirinto com matplotlib
-def mostrar_labirinto(labirinto, caminho=None, title="Labirinto 5x5", gerador_factory=None, intervalo=0.3):
+def mostrar_labirinto(labirinto, caminho=None, title = f"Labirinto {TAMANHO}x{TAMANHO}", gerador_factory=None, intervalo=0.3):
     # Variável global para controlar o loop da animação
     global running
     running = True
@@ -120,6 +120,7 @@ def mostrar_labirinto(labirinto, caminho=None, title="Labirinto 5x5", gerador_fa
 
                 # Desenhar grade
                 ax.imshow(labirinto, cmap='gray_r')
+                ax.set_title(title)
                 ax.set_xticks(np.arange(-0.5, TAMANHO, 1), minor=True)
                 ax.set_yticks(np.arange(-0.5, TAMANHO, 1), minor=True)
                 ax.grid(which="minor", linestyle='-', linewidth=2)
