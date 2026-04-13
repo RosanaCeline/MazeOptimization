@@ -5,7 +5,7 @@ import random
 from collections import deque
 
 import algoritmo_a_star as star
-import algoritmo_x as x
+import algoritmo_busca_tabu as x
 
 TAMANHO = 5 # 5 x 5 células (25 no total)
 PORCENTAGEM_BLOQUEIOS = 0.32
@@ -164,5 +164,5 @@ print(labirinto)
 mostrar_labirinto(labirinto)
 mostrar_labirinto(labirinto, gerador_factory=lambda: star.algoritmo_a_star(labirinto, ENTRADA, SAIDA), title="Labirinto com A*")
 
-# caminho_x = x.funcao(labirinto, ENTRADA, SAIDA)
-# mostrar_labirinto(labirinto, caminho_x, "Labirinto com o Algoritmo X")
+# Busca tabu
+mostrar_labirinto(labirinto,gerador_factory=lambda: x.tabu_search(labirinto, ENTRADA, SAIDA), title="Labirinto com Busca Tabu")
