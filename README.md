@@ -8,23 +8,23 @@ A entrada está localizada na posição (0,0) e a saída na posição (4,4). O l
 
 ## Funcionalidades
 
-* Geração aleatória de labirinto 5x5
-* Controle de células bloqueadas (32%)
-* Verificação de existência de caminho utilizando BFS (Breadth-First Search)
-* Visualização do labirinto com Matplotlib
-* Integração com algoritmos de busca (A*, entre outros)
+- Geração aleatória de labirinto 5x5
+- Controle de células bloqueadas (32%)
+- Verificação de existência de caminho utilizando BFS (Breadth-First Search)
+- Visualização do labirinto com Matplotlib
+- Integração com algoritmos de busca (A\*, entre outros)
 
 ## Estrutura do Projeto
 
-* main.py: geração do labirinto, validação e visualização
-* algoritmo_a_star.py: implementação do algoritmo A*
-* algoritmo_x.py: implementação de outro algoritmo de busca
+- main.py: geração do labirinto, validação e visualização
+- algoritmo_a_star.py: implementação do algoritmo A\*
+- algoritmo_busca_tabu.py: implementação do algoritimo Busca tabu.
 
 ## Tecnologias Utilizadas
 
-* Python
-* NumPy
-* Matplotlib
+- Python
+- NumPy
+- Matplotlib
 
 ## Como Executar
 
@@ -35,6 +35,7 @@ pip install numpy matplotlib
 ```
 
 2. Execute o arquivo principal:
+
 ```bash
 python main.py
 ```

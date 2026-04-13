@@ -1,60 +1,71 @@
 import numpy as np
 
-# BUSCA TABU : evita loops usando memória
-# HEURISTICA : a distância entre a posição atual e a saída do labirinto
+# heurística (distância de Manhattan)
+def heuristica(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-def tabu_search(labirinto, inicio, fim, tamanho_tabu=10, bt_max=100):
-    # começa no início
+def tabu_search(labirinto, inicio, fim, tamanho_tabu=5, bt_max=100):
     atual = inicio
-      # guarda no caminho
     caminho = [atual]
-
     tamanho = len(labirinto)
-    
-     # guarda posições proibidas 
     lista_tabu = []
     visitados = set([atual])
- 
-     # evita loop infinito
+    melhor_global = atual 
+
+    # limite de passos (evita loop infinito 
     for _ in range(bt_max):
         yield {
             "atual": atual,
             "visitados": set(visitados),
-            "abertos": set(), 
+            "abertos": set(),
             "caminho": None
         }
-          # chegou na saída
+
         if atual == fim:
             break
-      # separa coordenadas
+
         x, y = atual
-         # cria lista de vizinhos
+
         vizinhos = []
-         # cima , baixo , esquerda , direita 
+        # gera movimentos: cima, baixo, esquerda, direita
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nx, ny = x + dx, y + dy
-        # Verifica se está dentro do limite 5x5 e se não é uma parede (0 = caminho livre, 1 = parede)
+
+            # verifica limites e se não é parede
             if 0 <= nx < tamanho and 0 <= ny < tamanho:
                 if labirinto[nx][ny] == 0:
                     vizinhos.append((nx, ny))
-       # Filtra quem não está na lista tabu
-        vizinhos_validos = [v for v in vizinhos if v not in lista_tabu]
-        # se todos são tabu permite (escapar de bloqueio)
-        if not vizinhos_validos:
-            vizinhos_validos = vizinhos 
-        # escolhe o melhor vizinho (heurística)
-        # escolhe o vizinho mais próximo da saída
-        melhor = min( vizinhos_validos, key=lambda v: abs(v[0] - fim[0]) + abs(v[1] - fim[1]))
 
-        # atualiza tabu
+        # remove da lista de vizinhos aqueles que estão na lista tabu
+        vizinhos_validos = [v for v in vizinhos if v not in lista_tabu]
+
+        # evita voltar para o passo anterior 
+        if len(caminho) > 1:
+            ultimo = caminho[-2]
+            vizinhos_validos = [v for v in vizinhos_validos if v != ultimo]
+
+        # estratégia de escape
+        if not vizinhos_validos:
+            vizinhos_validos = vizinhos
+
+        # escolhe o melhor vizinho
+        melhor = min(vizinhos_validos, key=lambda v: heuristica(v, fim))
+
+        # adiciona posição atual na lista tabu
         lista_tabu.append(atual)
         if len(lista_tabu) > tamanho_tabu:
             lista_tabu.pop(0)
-         # atualiza lista tabu ( add posição atual )
+        
+        # anda para o melhor vizinho
         atual = melhor
         caminho.append(atual)
         visitados.add(atual)
-     # anda
+       
+        # atualiza melhor posição já encontrada
+        if heuristica(atual, fim) < heuristica(melhor_global, fim):
+            melhor_global = atual
+
+    
     for i in range(len(caminho)):
         yield {
             "atual": caminho[i],
