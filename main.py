@@ -162,7 +162,7 @@ labirinto = gerar_labirinto()
 print(labirinto)
 
 mostrar_labirinto(labirinto)
+# A-star
 mostrar_labirinto(labirinto, gerador_factory=lambda: star.algoritmo_a_star(labirinto, ENTRADA, SAIDA), title="Labirinto com A*")
-
 # Busca tabu
 mostrar_labirinto(labirinto,gerador_factory=lambda: x.tabu_search(labirinto, ENTRADA, SAIDA), title="Labirinto com Busca Tabu")
