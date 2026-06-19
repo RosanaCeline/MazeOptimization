@@ -26,7 +26,7 @@ def algoritmo_a_star(labirinto, entrada, saida):
     heappush(fila, (0, entrada))
 
     veio_de = {}
-    custo_ate_agora = {entrada: 0}
+    custo = {entrada: 0}
 
     visitados = set() # rastrear visitados
     abertos = {entrada} # rastrear a fila de abertos
@@ -44,10 +44,10 @@ def algoritmo_a_star(labirinto, entrada, saida):
             break
 
         for vizinho in grafo[atual]:
-            novo_custo = custo_ate_agora[atual] + 1
+            novo_custo = custo[atual] + 1
 
-            if vizinho not in custo_ate_agora or novo_custo < custo_ate_agora[vizinho]:
-                custo_ate_agora[vizinho] = novo_custo
+            if vizinho not in custo or novo_custo < custo[vizinho]:
+                custo[vizinho] = novo_custo
                 prioridade = novo_custo + heuristica(vizinho, saida)
                 heappush(fila, (prioridade, vizinho))
                 veio_de[vizinho] = atual
