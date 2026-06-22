@@ -1,13 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Patch
 import random
 from collections import deque
 
 import colonia_de_formigas as formigas
 
+CMAP = LinearSegmentedColormap.from_list(
+    "feromonio",
+    ["white", "#FFFF66", "#FFD700", "#FFA500"]  # branco → amarelo claro → amarelo → laranja
+)
+
 TAMANHO = 10
-PORCENTAGEM_BLOQUEIOS = 0.50
+PORCENTAGEM_BLOQUEIOS = 0.32
 ENTRADA = (0, 0)
 SAIDA = (TAMANHO-1, TAMANHO-1)
 
@@ -55,15 +62,21 @@ def on_close(event):
     global running
     running = False
 
-# Mostra o labirinto com matplotlib
-def mostrar_labirinto(labirinto, caminho=None, title = f"Labirinto {TAMANHO}x{TAMANHO}", gerador_factory=None, intervalo=0.3):
-    # Variável global para controlar o loop da animação
+def mostrar_labirinto(labirinto, title = f"Labirinto {TAMANHO}x{TAMANHO}", gerador_factory=None, intervalo=0.3):
     global running
     running = True
     
-    # Define o tamanho da figura e conecta o evento de fechamento
     fig, ax = plt.subplots(figsize=(10, 5))
     fig.canvas.mpl_connect('close_event', on_close)
+
+    legenda = [
+        Patch(facecolor='white',   edgecolor='gray', label='Sem feromônio'),
+        Patch(facecolor='#FFFF99', edgecolor='gray', label='Feromônio fraco'),
+        Patch(facecolor='#FFD700', edgecolor='gray', label='Feromônio forte'),
+        Patch(facecolor='orange',  alpha=0.9,        label='Formiga atual'),
+        Patch(facecolor='red',     alpha=0.9,        label='Melhor caminho'),
+        Patch(facecolor='black',                     label='Parede'),
+    ]
 
     # Desenhar grade
     ax.imshow(labirinto, cmap='gray_r')
@@ -75,82 +88,98 @@ def mostrar_labirinto(labirinto, caminho=None, title = f"Labirinto {TAMANHO}x{TA
     ax.text(ENTRADA[1], ENTRADA[0], 'E', ha='center', va='center')
     ax.text(SAIDA[1], SAIDA[0], 'S', ha='center', va='center')
 
-    # Caminho
-    if caminho:
-        for (x, y) in caminho:
-            ax.plot(y, x, marker='o')
+    while running:
+        gerador = gerador_factory()
+        
+        for estado in gerador:
+            if not running:
+                break
 
-    # modo animado (se usar algoritmo)
-    if gerador_factory:
+            ax.clear()
 
-        # Define a legenda das cores para cada estado do algoritmo
-        legenda = [
-            Patch(facecolor='skyblue', alpha=0.6, label='Visitado'),
-            Patch(facecolor='yellow',  alpha=0.7, label='Vizinho (na fila/ em aberto)'),
-            Patch(facecolor='orange',  alpha=0.9, label='Expandindo agora'),
-            Patch(facecolor='red',     alpha=0.9, label='Caminho final'),
-            Patch(facecolor='black',   alpha=0.9, label='Parede'),
-        ]
+            feromonio = estado["feromonio"]
+            formiga   = estado["formiga_atual"]
+            caminho_f = estado["caminho_formiga"]
+            melhor    = estado["melhor_caminho"]
+            iteracao  = estado["iteracao"]
+            fase      = estado["fase"]
+            tamanho   = len(labirinto)
 
-        # Enquanto a janela estiver aberta, continua a animação
-        while running:
+            ax.imshow(labirinto, cmap='gray_r')
 
-            # Cria o gerador do algoritmo (que vai produzindo os estados passo a passo)
-            gerador = gerador_factory()
+            # Normalização do feromônio sobre células livres
+            valores_livres = [
+                feromonio[i][j]
+                for i in range(tamanho)
+                for j in range(tamanho)
+                if labirinto[i][j] == 0
+            ]
+            f_min = min(valores_livres)
+            f_max = max(valores_livres)
+            if f_max == f_min:
+                f_max = f_min + 0.001
 
-            # Para cada estado produzido pelo algoritmo, atualiza a visualização
-            for estado in gerador:
-                # Se a janela foi fechada, para a animação
-                if not running:
-                    break
-
-                # Limpa o gráfico para desenhar o próximo estado (pra poder mudar de cor devidamente em cada quadradinho)
-                ax.clear()
-
-                # Desenhar grade
-                ax.imshow(labirinto, cmap='gray_r')
-                ax.set_title(title)
-                ax.set_xticks(np.arange(-0.5, TAMANHO, 1), minor=True)
-                ax.set_yticks(np.arange(-0.5, TAMANHO, 1), minor=True)
-                ax.grid(which="minor", linestyle='-', linewidth=2)
-
-                # Entrada e saída
-                ax.text(ENTRADA[1], ENTRADA[0], 'E', ha='center', va='center')
-                ax.text(SAIDA[1], SAIDA[0], 'S', ha='center', va='center')
-
-                # Animar caminho com as cores (vai pintar o quadradinho de acordo com o estado do algoritmo)
-                # Bloco Visitados = azul
-                for (x, y) in estado["visitados"]:
-                    ax.add_patch(plt.Rectangle((y-0.5, x-0.5), 1, 1, color='skyblue', alpha=0.6, zorder=2))
-
-                # Bloco Abertos (na fila) = amarelo 
-                for (x, y) in estado["abertos"]:
-                    ax.add_patch(plt.Rectangle((y-0.5, x-0.5), 1, 1, color='yellow', alpha=0.7, zorder=2))
-
-                # Bloco Expandindo agora = laranja
-                if estado["caminho"] is None:
-                    cx, cy = estado["atual"]
-                    ax.add_patch(plt.Rectangle((cy-0.5, cx-0.5), 1, 1, color='orange', alpha=0.9, zorder=3))
-
-                # Bloco Caminho final = pontinho vermelho
-                if estado["caminho"]:
-                    for (x, y) in estado["caminho"]:
-                        ax.plot(y, x, marker='o', color='red', zorder=4)
-
-                # Adiciona a legenda do gráfico 
-                ax.legend(handles=legenda, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0)
-                # Pausa para criar a animação (acelerar ou desacelerar a animação)
-                plt.pause(intervalo)
+            norm = mcolors.Normalize(vmin=f_min, vmax=f_max)
+            cmap = CMAP
             
-            # Pausa final para mostrar o caminho final, logo após começa o loop novamente
-            plt.pause(1)
+            # Colorir células livres pelo feromônio
+            for i in range(tamanho):
+                for j in range(tamanho):
+                    if labirinto[i][j] == 0:
+                        valor = feromonio[i][j]
+                        if valor <= f_min + 0.001:
+                            cor = 'white'
+                        else:
+                            cor = cmap(norm(valor))
+                        ax.add_patch(plt.Rectangle(
+                            (j - 0.5, i - 0.5), 1, 1,
+                            color=cor, alpha=0.85, zorder=2
+                        ))
+
+            # Trilha da formiga em movimento
+            if fase == "movimento" and caminho_f:
+                for (x, y) in caminho_f[:-1]:
+                    ax.add_patch(plt.Rectangle(
+                        (y - 0.5, x - 0.5), 1, 1,
+                        color='orange', alpha=0.4, zorder=3
+                    ))
+                if formiga:
+                    fx, fy = formiga
+                    ax.add_patch(plt.Rectangle(
+                        (fy - 0.5, fx - 0.5), 1, 1,
+                        color='orange', alpha=0.95, zorder=4
+                    ))
+
+            # Melhor caminho em vermelho
+            if melhor:
+                for (x, y) in melhor[1]:
+                    ax.plot(y, x, marker='o', color='red', markersize=6, zorder=5)
+
+            # Desenhar grade
+            ax.set_xticks(np.arange(-0.5, TAMANHO, 1), minor=True)
+            ax.set_yticks(np.arange(-0.5, TAMANHO, 1), minor=True)
+            ax.grid(which="minor", linestyle='-', linewidth=1.5, color='gray')
+
+            # Entrada e saída
+            ax.text(ENTRADA[1], ENTRADA[0], 'E', ha='center', va='center')
+            ax.text(SAIDA[1], SAIDA[0], 'S', ha='center', va='center')
+            
+            ax.set_title(f"{title} | Iteração {iteracao}")
+            ax.legend(handles=legenda, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0)
+
+            plt.pause(intervalo)
+            
+        # Pausa final para mostrar o caminho final, logo após começa o loop novamente
+        plt.pause(2)
 
     ax.set_title(title)
     plt.show()
-""
-labirinto = gerar_labirinto()
-print(labirinto)
 
-mostrar_labirinto(labirinto)
-# mostrar_labirinto(labirinto, gerador_factory=lambda: formigas.colonia_de_formigas(labirinto, ENTRADA, SAIDA), title="Labirinto com Colônia de Formigas")
-formigas.colonia_de_formigas(labirinto, ENTRADA, SAIDA)
+labirinto = gerar_labirinto()
+
+mostrar_labirinto(
+    labirinto,
+    gerador_factory=lambda: formigas.colonia_de_formigas(labirinto, ENTRADA, SAIDA),
+    title="Colônia de Formigas",
+    intervalo=0.3
+)

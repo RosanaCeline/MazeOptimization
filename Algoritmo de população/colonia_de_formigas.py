@@ -57,16 +57,6 @@ def colonia_de_formigas(labirinto, entrada, saida):
                 atual = random.choices(vizinhos, weights=[v[0] for v in vizinhos], k=1)[0][1]
                 ordem.append(atual)
 
-
-                yield {
-                    "feromonio": feromonio,
-                    "formiga_atual": atual,
-                    "caminho_formiga": list(ordem),
-                    "melhor_caminho": melhor_caminho,
-                    "iteracao": iteracoes,
-                    "fase": "movimento"
-                }
-
             if atual != saida:
                 continue
 
