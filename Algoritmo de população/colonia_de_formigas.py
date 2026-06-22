@@ -36,12 +36,10 @@ def colonia_de_formigas(labirinto, entrada, saida):
         iteracoes += 1
         formigas_aptas = []
 
-        for f_idx in range(20): # número de formigas
-            print(f"\nFormiga {f_idx + 1}")
+        for _ in range(20): # número de formigas
             ordem = [entrada]
             visitados = set()
             atual = entrada
-            print(f"Atual: {atual}")
 
             while atual != saida:
                 visitados.add(atual)
@@ -56,19 +54,21 @@ def colonia_de_formigas(labirinto, entrada, saida):
                 if len(vizinhos) == 0:
                     break
 
-                print("Vizinhos:")
-                for peso, vizinho in vizinhos:
-                    print(f"  {vizinho} peso={peso:.4f}")
                 atual = random.choices(vizinhos, weights=[v[0] for v in vizinhos], k=1)[0][1]
                 ordem.append(atual)
-                print(f"Escolhido: {atual}")
+
+
+                yield {
+                    "feromonio": feromonio,
+                    "formiga_atual": atual,
+                    "caminho_formiga": list(ordem),
+                    "melhor_caminho": melhor_caminho,
+                    "iteracao": iteracoes,
+                    "fase": "movimento"
+                }
 
             if atual != saida:
                 continue
-
-            print("\nSaída encontrada!")
-            print(f"Caminho: {ordem}")
-            print(f"Tamanho: {len(ordem)}")
 
             formigas_aptas.append((len(ordem), ordem))
 
@@ -81,12 +81,6 @@ def colonia_de_formigas(labirinto, entrada, saida):
         for tamanho_caminho, caminho in formigas_aptas:
             for x, y in caminho:
                 feromonio[x][y] += 1.0 / tamanho_caminho
-
-        print("\nFeromônio atualizado:")
-        for i in range(tamanho):
-            for j in range(tamanho):
-                if feromonio[i][j] > 0.1:
-                    print(f"({i},{j}) = {feromonio[i][j]:.4f}")
         
         if len(formigas_aptas) > 0:
             formigas_aptas.sort(key=lambda x: x[0])
@@ -95,4 +89,12 @@ def colonia_de_formigas(labirinto, entrada, saida):
             else:
                 count_solucoes_iguais = 0
             melhor_caminho = formigas_aptas[0]
-            print(f"\nMelhor caminho até agora: {melhor_caminho[1]} (tamanho {melhor_caminho[0]}) Geração: {iteracoes} Soluções iguais: {count_solucoes_iguais}")
+            
+        yield {
+            "feromonio": feromonio,
+            "formiga_atual": None,
+            "caminho_formiga": [],
+            "melhor_caminho": melhor_caminho,
+            "iteracao": iteracoes,
+            "fase": "iteracao_concluida"
+        }
