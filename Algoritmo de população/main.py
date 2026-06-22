@@ -138,19 +138,17 @@ def mostrar_labirinto(labirinto, title = f"Labirinto {TAMANHO}x{TAMANHO}", gerad
                         color=cor, alpha=0.85, zorder=2
                     ))
 
-        # Trilha da formiga em movimento
-        if fase == "movimento" and caminho_f:
-            for (x, y) in caminho_f[:-1]:
-                ax.add_patch(plt.Rectangle(
-                    (y - 0.5, x - 0.5), 1, 1,
-                    color='orange', alpha=0.4, zorder=3
-                ))
-            if formiga:
-                fx, fy = formiga
-                ax.add_patch(plt.Rectangle(
-                    (fy - 0.5, fx - 0.5), 1, 1,
-                    color='orange', alpha=0.95, zorder=4
-                ))
+        if formiga:
+            fx, fy = formiga
+            ax.add_patch(
+                plt.Rectangle(
+                    (fy - 0.5, fx - 0.5),
+                    1, 1,
+                    color="orange",
+                    alpha=0.9,
+                    zorder=4
+                )
+            )
 
         # Melhor caminho em vermelho
         if melhor:
