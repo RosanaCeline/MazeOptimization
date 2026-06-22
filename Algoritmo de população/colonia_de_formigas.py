@@ -23,9 +23,11 @@ def heuristica(a, b):
 def colonia_de_formigas(labirinto, entrada, saida):
     PESO_HEURISTICA = 1.0
     PESO_FEROMONIO = 1.0
+    TAXA_EVAPORACAO = 0.1 
 
     grafo = labirinto_em_grafo(labirinto)
-    feromonio = [[1 for _ in range(len(labirinto))] for _ in range(len(labirinto))]
+    tamanho = len(labirinto)
+    feromonio = [[1 for _ in range(tamanho)] for _ in range(tamanho)]
     melhor_caminho = None
     iteracoes = 0
     count_solucoes_iguais = 0
@@ -34,8 +36,8 @@ def colonia_de_formigas(labirinto, entrada, saida):
         iteracoes += 1
         formigas_aptas = []
 
-        for _ in range(20): # número de formigas
-            print(f"\nFormiga {_ + 1}")
+        for f_idx in range(20): # número de formigas
+            print(f"\nFormiga {f_idx + 1}")
             ordem = [entrada]
             visitados = set()
             atual = entrada
@@ -48,7 +50,7 @@ def colonia_de_formigas(labirinto, entrada, saida):
                 for vizinho in grafo[atual]:
                     if vizinho not in visitados:
                         heuristica_valor = 1 / (heuristica(vizinho, saida) + 1)
-                        peso = (PESO_HEURISTICA * heuristica_valor) * (PESO_FEROMONIO * feromonio[vizinho[0]][vizinho[1]])
+                        peso = (feromonio[vizinho[0]][vizinho[1]] ** PESO_FEROMONIO) * (heuristica_valor ** PESO_HEURISTICA)
                         vizinhos.append((peso, vizinho))
                 
                 if len(vizinhos) == 0:
@@ -68,16 +70,23 @@ def colonia_de_formigas(labirinto, entrada, saida):
             print(f"Caminho: {ordem}")
             print(f"Tamanho: {len(ordem)}")
 
-            # Atualiza feromônio
-            for i in range(len(ordem)):
-                x, y = ordem[i]
-                feromonio[x][y] += 1.0 / len(ordem)
-
-            print("\nFeromônio atualizado:")
-            for pos in ordem:
-                print(pos, feromonio[pos[0]][pos[1]])
-
             formigas_aptas.append((len(ordem), ordem))
+
+        # Evaporação global
+        for i in range(tamanho):
+            for j in range(tamanho):
+                feromonio[i][j] = max(0.1, feromonio[i][j] * (1 - TAXA_EVAPORACAO))
+
+        # Depósito apenas das formigas que chegaram à saída
+        for tamanho_caminho, caminho in formigas_aptas:
+            for x, y in caminho:
+                feromonio[x][y] += 1.0 / tamanho_caminho
+
+        print("\nFeromônio atualizado:")
+        for i in range(tamanho):
+            for j in range(tamanho):
+                if feromonio[i][j] > 0.1:
+                    print(f"({i},{j}) = {feromonio[i][j]:.4f}")
         
         if len(formigas_aptas) > 0:
             formigas_aptas.sort(key=lambda x: x[0])
@@ -87,4 +96,3 @@ def colonia_de_formigas(labirinto, entrada, saida):
                 count_solucoes_iguais = 0
             melhor_caminho = formigas_aptas[0]
             print(f"\nMelhor caminho até agora: {melhor_caminho[1]} (tamanho {melhor_caminho[0]}) Geração: {iteracoes} Soluções iguais: {count_solucoes_iguais}")
-        
